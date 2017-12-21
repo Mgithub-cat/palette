@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+<header>
+    <ul class="bar1">
+        <li>新建</li>
+        <li>保存</li>
+        <li>撤销</li>
+        <li>退出</li>
+    </ul>
+    <ul class="bar2">
+        <li id="line">直线</li>
+        <li id="dott">虚线</li>
+        <li id="pencil">铅笔</li>
+        <li id="poly">凸多边形</li>
+        <li id="polyV">凹多边形</li>
+        <li id="circle">圆</li>
+        <li id="rect">矩形</li>
+        <li id="eraser">橡皮</li>
+    </ul>
+</header>
+<section>
+    <canvas width="1000" height="500"></canvas>
+</section>
+</body>
+</html>
+<script src="index.js"></script>
+<script>
+    window.addEventListener('load', function () {
+        let canvas = document.querySelector('canvas');
+        let ctx = canvas.getContext('2d');
+        let shape = document.querySelectorAll('.bar2 li');
+        let palette = new Palette(canvas);
+
+
+        shape.forEach(element => {
+            let type = element.id;
+            element.onclick = function () {
+                shape.forEach(obj=>{
+                    obj.classList.remove('active');
+                })
+                element.classList.add('active');
+                if (type == 'poly' || type == 'polyV') {
+                    let num1 = prompt('请输入边数');
+                    palette[type](num1);
+                } else {
+                    palette[type]();
+                }
+            }
+        })
+    })
+</script>
