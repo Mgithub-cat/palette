@@ -11,50 +11,144 @@
 <body>
 <header>
     <ul class="bar1">
-        <li>新建</li>
-        <li>保存</li>
-        <li>撤销</li>
-        <li>退出</li>
+        <li id="newc">新建</li>
+        <li id="save">保存</li>
+        <li id="revocation">撤销</li>
+        <li id="clear">退出</li>
     </ul>
     <ul class="bar2">
         <li id="line">直线</li>
-        <li id="dott">虚线</li>
+        <li id="dotted">虚线</li>
         <li id="pencil">铅笔</li>
         <li id="poly">凸多边形</li>
-        <li id="polyV">凹多边形</li>
+        <li id="polygon">凹多边形</li>
         <li id="circle">圆</li>
         <li id="rect">矩形</li>
         <li id="eraser">橡皮</li>
     </ul>
+    <ul class="bar3">
+        <li class="styleBtn" id="fill">填充</li>
+        <li class="styleBtn" id="stroke">描边</li>
+        <li>线宽</li>
+        <li><input type="color" id="strokeStyle"></li>
+        <li><input type="color" id="fillStyle"></li>
+        <li><input type="number" style="width: 45px"></li>
+    </ul>
 </header>
 <section>
     <canvas width="1000" height="500"></canvas>
+    <div class="eraser"></div>
+    <div class="mask"></div>
 </section>
 </body>
 </html>
 <script src="index.js"></script>
 <script>
     window.addEventListener('load', function () {
-        let canvas = document.querySelector('canvas');
-        let ctx = canvas.getContext('2d');
+        /*let canvas = document.querySelector('canvas');
+        let styleBtn = document.querySelectorAll('.styleBtn');
+        let color = document.querySelectorAll('input[type=color]');
+        let linewidth = document.querySelector('input[type=number]')
         let shape = document.querySelectorAll('.bar2 li');
-        let palette = new Palette(canvas);
+        let palette = new Palette(canvas);*/
 
+        let canvas = document.querySelector('canvas');
+        let tool = document.querySelectorAll('.bar2 li');
+        let style = document.querySelectorAll('.styleBtn');
+        let color = document.querySelectorAll('input[type=color]');
+        let lineWidth = document.querySelectorAll('input[type=number]');
+        let operate = document.querySelectorAll('.bar1 li');
+        let era = document.querySelector('.eraser');
+        let opacity = document.querySelector('.mask');
+        let palette = new Palette(opacity, canvas);
 
-        shape.forEach(element => {
-            let type = element.id;
-            element.onclick = function () {
-                shape.forEach(obj=>{
-                    obj.classList.remove('active');
-                })
-                element.classList.add('active');
-                if (type == 'poly' || type == 'polyV') {
-                    let num1 = prompt('请输入边数');
-                    palette[type](num1);
+        operate.forEach(e => {
+            let type = e.id;
+            e.onclick = function () {
+                if (type == 'newc') {
+                    let cw = parseInt(prompt('请输入画板宽度'));
+                    let ch = parseInt(prompt('请输入画板高度'));
+                    canvas = document.createElement('canvas');
+                    canvas.width = cw;
+                    canvas.height = ch;
+                    canvas.className = 'canvas';
+                    document.querySelector('section').appendChild(canvas);
+                    let palette = new Palette(opacity, canvas);
                 } else {
                     palette[type]();
                 }
             }
         })
+        tool.forEach(e => {
+            let type = e.id;
+            e.onclick = function () {
+                tool.forEach(obj => obj.classList.remove('active'));
+                this.classList.add('active');
+                if (type == 'poly' || type == 'polygon') {
+                    let ask = prompt('请输入边数或角数');
+                    palette.draw(type, ask);
+                } else if (type == 'pencil' || type == 'eraser') {
+                    palette[type]();
+                } else {
+                    palette.draw(type);
+                }
+            }
+        })
+        tool[0].onclick();
+
+        style.forEach(e => {
+            e.onclick = function () {
+                style.forEach(obj => obj.classList.remove('active'));
+                this.classList.add('active');
+                palette.style = this.id;
+            }
+        })
+        style[0].onclick();
+        color.forEach(e => {
+            e.onchange = function () {
+                palette[this.id] = this.value;
+            }
+        })
+        lineWidth.forEach(e => {
+            e.onchange = function () {
+                palette.lineWidth = this.value;
+            }
+        })
     })
+
+
+    /*shape.forEach(element => {
+        let type = element.id;
+        element.onclick = function () {
+            shape.forEach(obj => {
+                obj.classList.remove('active');
+            })
+            element.classList.add('active');
+            if (type == 'poly' || type == 'polyV') {
+                let num1 = prompt('请输入边数');
+                palette[type](num1);
+            } else {
+                palette[type]();
+            }
+        }
+    })
+    shape[0].onclick();
+    styleBtn.forEach(e => {
+        e.onclick = function () {
+            styleBtn.forEach(ele => {
+                ele.classList.remove('active');
+            });
+            e.classList.add('active');
+            palette.style = this.id;
+        }
+    });
+    color.forEach(el => {
+        el.onchange = function(){
+            palette[this.id] = this.value;
+        }
+    });
+    linewidth.oninput = function(){
+        palette.lineWidth = this.value;
+    }
+})*/
 </script>

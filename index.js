@@ -1,170 +1,195 @@
 class Palette {
-    constructor(canvas) {
+    constructor(opacity, canvas) {
+        this.opacity = opacity;
         this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
+        this.ctx = this.canvas.getContext("2d");
+
         this.cw = this.canvas.width;
         this.ch = this.canvas.height;
+
         this.history = [];
+        this.lineWidth = 1;
+
+        this.style = 'stroke';
+        this.fillStyle = '#000';
+        this.strokeStyle = '#000';
     }
 
-    line() {
+    _init() {
+        this.ctx.lineWidth = this.lineWidth;
+        this.ctx.strokeStyle = this.strokeStyle;
+        this.ctx.fillStyle = this.fillStyle;
+    }
+
+    draw(type, ask) {
         let that = this;
-        that.canvas.onmousedown = function (e) {
-            let ox = e.offsetX;
-            let oy = e.offsetY;
-            that.canvas.onmousemove = function (e) {
-                let mx = e.offsetX;
-                let my = e.offsetY;
+        let era = document.querySelector('.eraser');
+        era.style.display = 'none';
+        that.opacity.onmousedown = function (e) {
+            let ox = e.offsetX, oy = e.offsetY;
+            that.opacity.onmousemove = function (e) {
+                let mx = e.offsetX, my = e.offsetY;
                 that.ctx.clearRect(0, 0, that.cw, that.ch);
-                that.ctx.beginPath();
-                that.ctx.moveTo(ox, oy);
+                if (that.history.length) {
+                    that.ctx.putImageData(that.history[that.history.length - 1], 0, 0);
+                }
+                that._init();
+                that[type](ox, oy, mx, my, ask);
+            }
+            that.opacity.onmouseup = function () {
+                that.history.push(that.ctx.getImageData(0, 0, that.cw, that.ch));
+                that.opacity.onmousemove = null;
+                that.opacity.onmouseup = null;
+            }
+        }
+        that.revocation();
+    }
+
+    revocation() {
+        let that = this;
+        document.onkeydown = function (e) {
+            if (e.ctrlKey && e.key == 'z') {
+                if (that.history.length > 0) {
+                    let data = that.history.pop();
+                    that.ctx.putImageData(data, 0, 0)
+                } else {
+                    that.ctx.clearRect(0, 0, that.cw, that.ch);
+                }
+            }
+            ;
+        };
+        this.history.push(this.ctx.getImageData(0, 0, this.cw, this.ch));
+    }
+
+    clear() {
+        this.ctx.clearRect(0, 0, this.cw, this.ch);
+        this.history.push(this.ctx.getImageData(0, 0, this.cw, this.ch));
+    }
+
+    pencil() {
+        let that = this;
+        let era = document.querySelector('.eraser');
+        era.style.display = 'none';
+        that.opacity.onmousedown = function (e) {
+            let ox = e.offsetX, oy = e.offsetY;
+            that._init();
+            that.ctx.beginPath();
+            that.ctx.moveTo(ox, oy);
+            that.opacity.onmousemove = function (e) {
+                let mx = e.offsetX, my = e.offsetY;
+                that.ctx.clearRect(0, 0, that.cw, that.ch);
                 if (that.history.length) {
                     that.ctx.putImageData(that.history[that.history.length - 1], 0, 0);
                 }
                 that.ctx.lineTo(mx, my);
                 that.ctx.stroke();
             }
-            that.canvas.onmouseup = function () {
+            that.opacity.onmouseup = function () {
                 that.history.push(that.ctx.getImageData(0, 0, that.cw, that.ch));
-                that.canvas.onmousemove = null;
-                that.canvas.onmouseup = null;
+                that.opacity.onmousemove = null;
+                that.opacity.onmouseup = null;
             }
         }
+        that.revocation();
     }
 
-    poly(num1) {
+    eraser() {
         let that = this;
-        that.canvas.onmousedown = function (e) {
-            let ox = e.offsetX,
-                oy = e.offsetY;
-            that.canvas.onmousemove = function (e) {
-                let mx = e.offsetX,
-                    my = e.offsetY;
-                let r = Math.sqrt(Math.pow(ox - mx, 2) + Math.pow(oy - my, 2));
-                poly1(r, ox, oy);
-            }
-            that.canvas.onmouseup = function () {
-                that.canvas.onmousemove = null;
-            }
-        }
-
-        function poly1(r, ox, oy, num = num1) {
-            let ang = 2 * Math.PI / num;
-            that.ctx.clearRect(0, 0, that.cw, that.ch);
-            that.ctx.beginPath();
-            that.ctx.moveTo(ox + r, oy);
-            for (let i = 0; i < num; i++) {
-                let x = ox + r * Math.cos(ang * i);
-                let y = oy + r * Math.sin(ang * i);
-                that.ctx.lineTo(x, y);
-            }
-            that.ctx.closePath();
-            that.ctx.stroke();
-        }
-    }
-
-    polyV(num1) {
-        let that = this;
-        that.canvas.onmousedown = function (e) {
-            let ox = e.offsetX,
-                oy = e.offsetY;
-            that.canvas.onmousemove = function (e) {
-                let mx = e.offsetX,
-                    my = e.offsetY;
-                let r = Math.sqrt(Math.pow(ox - mx, 2) + Math.pow(oy - my, 2)),
-                    r1 = r / 3;
-                poly(r, r1, ox, oy);
-            }
-            that.canvas.onmouseup = function () {
-                that.canvas.onmousemove = null;
-            }
-        }
-
-        function poly(r, r1, ox, oy, num = num1) {
-            let ang = Math.PI / num;
-            that.ctx.clearRect(0, 0, that.cw, that.ch);
-            that.ctx.beginPath();
-            that.ctx.moveTo(ox + r, oy);
-            for (let i = 0; i < num * 2; i++) {
-                let x, y;
-                if (i % 2 == 0) {
-                    x = ox + r * Math.cos(ang * i);
-                    y = oy + r * Math.sin(ang * i);
-                } else {
-                    x = ox + r1 * Math.cos(ang * i);
-                    y = oy + r1 * Math.sin(ang * i);
+        let era = document.querySelector('.eraser');
+        era.style.display = 'block';
+        that.opacity.onmousedown = function (e) {
+            let ox = e.offsetWidth, oy = e.offsetHeight;
+            let ew = era.offsetWidth, eh = era.offsetHeight;
+            let maxW = e.offsetWidth - era.offsetWidth;
+            let maxH = e.offsetHeight - era.offsetHeight;
+            that.opacity.onmousemove = function (e) {
+                let lefts = e.offsetX - ew / 2;
+                let tops = e.offsetY - eh / 2;
+                if (lefts >= maxW) {
+                    lefts = maxW;
                 }
-                that.ctx.lineTo(x, y);
-            }
-            that.ctx.closePath();
-            that.ctx.stroke();
-        }
-    }
-
-    circle() {
-        let that = this;
-        that.canvas.onmousedown = function (e) {
-            let ox = e.offsetX,
-                oy = e.offsetY;
-            that.canvas.onmousemove = function (e) {
-                let mx = e.offsetX,
-                    my = e.offsetY;
-                that.ctx.clearRect(0, 0, that.cw, that.ch);
-                let r = Math.sqrt(Math.pow(ox - mx, 2) + Math.pow(oy - my, 2));
-                that.ctx.beginPath();
-                if (that.history.length) {
-                    that.ctx.putImageData(that.history[that.history.length - 1], 0, 0);
+                if (tops >= maxH) {
+                    tops = maxH;
                 }
-                that.ctx.arc(ox, oy, r, 0, Math.PI * 2);
-                that.ctx.stroke();
+                if (lefts <= 0) {
+                    lefts = 0;
+                }
+                if (tops <= 0) {
+                    tops = 0;
+                }
+                era.style.left = lefts + 'px';
+                era.style.top = tops + 'px';
+                that.ctx.clearRect(lefts, tops, ew, eh);
             }
-            that.canvas.onmouseup = function () {
+            that.opacity.onmouseup = function () {
                 that.history.push(that.ctx.getImageData(0, 0, that.cw, that.ch));
-                that.canvas.onmousemove = null;
-                that.canvas.onmouseup = null;
+                that.opacity.onmousemove = null;
+                that.opacity.onmouseup = null;
             }
         }
+        that.revocation();
     }
 
-    rect() {
-        let that = this;
-        that.canvas.onmousedown = function (e) {
-            let ox = e.offsetX,
-                oy = e.offsetY;
-            that.canvas.onmousemove = function (e) {
-                let mx = e.offsetX,
-                    my = e.offsetY;
-                that.ctx.clearRect(0, 0, that.cw, that.ch);
-                let r = Math.sqrt(Math.pow(ox - mx, 2) + Math.pow(oy - my, 2));
-                that.ctx.beginPath();
-                if (that.history.length) {
-                    that.ctx.putImageData(that.history[that.history.length - 1], 0, 0);
-                }
-                that.ctx.rect(ox, oy, mx - ox, my - oy);
-                that.ctx.stroke();
-            }
-            that.canvas.onmouseup = function () {
-                that.history.push(that.ctx.getImageData(0, 0, that.cw, that.ch));
-                that.canvas.onmousemove = null;
-                that.canvas.onmouseup = null;
-            }
-        }
+    line(ox, oy, mx, my) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(ox, oy);
+        this.ctx.lineTo(mx, my);
+        this.ctx.stroke();
     }
 
-    pencil() {
-        let that = this;
-        that.canvas.onmousedown = function () {
-            that.ctx.beginPath()
-            that.canvas.onmousemove = function (e) {
-                let cx = e.offsetX;
-                let cy = e.offsetY;
-                that.ctx.lineTo(cx, cy);
-                that.ctx.stroke();
-            }
-            that.canvas.onmouseup = function () {
-                that.canvas.onmousemove = null;
-                that.canvas.onmouseup = null;
-            }
+    dotted(ox, oy, mx, my) {
+        this.ctx.setLineDash([5, 18]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(ox, oy);
+        this.ctx.lineTo(mx, my);
+        this.ctx.stroke();
+    }
+
+    rect(ox, oy, mx, my) {
+        this.ctx.beginPath();
+        this.ctx.rect(ox, oy, mx - ox, my - oy);
+        this.ctx[this.style]();
+    }
+
+    circle(ox, oy, mx, my) {
+        let radius = Math.sqrt(Math.pow(ox - mx, 2) + Math.pow(oy - my, 2));
+        this.ctx.beginPath();
+        this.ctx.arc(ox, oy, radius, 0, Math.PI * 2);
+        this.ctx[this.style]();
+    }
+
+    poly(ox, oy, mx, my, ask) {
+        let radius = Math.sqrt(Math.pow(ox - mx, 2) + Math.pow(oy - my, 2));
+        let deg = 2 * Math.PI / ask;
+        this.ctx.beginPath();
+        this.ctx.moveTo(ox + radius, oy);
+        for (let i = 0; i < ask; i++) {
+            let x = ox + radius * Math.cos(deg * i);
+            let y = oy + radius * Math.sin(deg * i);
+            this.ctx.lineTo(x, y);
         }
+        this.ctx.closePath();
+        this.ctx[this.style]();
+    }
+
+    polygon(ox, oy, mx, my, ask) {
+        let radius = Math.sqrt(Math.pow(ox - mx, 2) + Math.pow(oy - my, 2));
+        let radius1 = radius / 3;
+        let deg = Math.PI / ask
+        this.ctx.beginPath();
+        this.ctx.moveTo(ox + radius, oy);
+        for (let i = 0; i < ask * 2; i++) {
+            let x, y;
+            if (i % 2 == 0) {
+                x = ox + radius * Math.cos(deg * i);
+                y = oy + radius * Math.sin(deg * i);
+            } else {
+                x = ox + radius1 * Math.cos(deg * i);
+                y = oy + radius1 * Math.sin(deg * i);
+            }
+            this.ctx.lineTo(x, y);
+        }
+        this.ctx.closePath();
+        this.ctx[this.style]();
     }
 }
