@@ -13,6 +13,8 @@ class Palette {
         this.style = 'stroke';
         this.fillStyle = '#000';
         this.strokeStyle = '#000';
+
+        this.temp = [];
     }
 
     _init() {
@@ -191,5 +193,109 @@ class Palette {
         }
         this.ctx.closePath();
         this.ctx[this.style]();
+    }
+
+    font() {
+        let fontBtn = document.querySelector('.fontBtn');
+        this.opacity.onmousedown = function (e) {
+            this.opacity.onmousedown = null;
+            this._init();
+            let ox = e.offsetX, oy = e.offsetY;
+            let inputs = document.createElement('input');
+            inputs.style.cssText = `
+                width:100px;
+                height:30px;
+                padding:5px;
+                position:absolute;
+                left:${ox}px;
+                top:${oy}px;
+                z-index:9999;
+            `;
+            this.opacity.appendChild(inputs);
+            inputs.autofocus = true;
+            inputs.onblur = function () {
+                let v = inputs.value;
+                this.ctx.font = '20px 微软雅黑'
+                this.ctx.fillText(v, ox, oy);
+                this.opacity.removeChild(inputs);
+                fontBtn.classList.remove('active');
+            }.bind(this);
+
+
+            inputs.onmousedown = function (e) {
+                let ox = e.offsetX, oy = e.offsetY,
+                    l = inputs.offsetLeft, m = inputs.offsetTop;
+                this.opacity.onmousemove = function (e) {
+                    let mx = e.clientX, my = e.clientY;
+                    let lefts = l + mx - ox, tops = m + my - oy;
+                    /*if (lefts <= 0) {
+                        lefts = 0;
+                    }
+                    if (lefts >= this.cw) {
+                    }*/
+                    inputs.style.left = lefts + 'px';
+                    inputs.style.top = tops + 'px';
+                }
+                inputs.onmouseup = function () {
+                    this.opacity.onmousemove = null;
+                    inputs.onmouseup = null;
+                    console.log(1)
+                }.bind(this);
+            }.bind(this);
+        }.bind(this);
+    }
+
+    clip(clip) {
+        let that = this;
+        this.opacity.onmousedown = function (e) {
+            let ox = e.offsetX, oy = e.offsetY, w, h, minx, miny;
+            clip.style.display = 'block';
+            clip.style.left = ox + 'px';
+            clip.style.top = oy + 'px';
+            that.opacity.onmousemove = function (e) {
+                let mx = e.offsetX, my = e.offsetY;
+                w = Math.abs(mx - ox), h = Math.abs(my - oy);
+                minx = ox < mx ? ox : mx;
+                miny = oy < my ? oy : my;
+                clip.style.left = minx + 'px';
+                clip.style.top = miny + 'px';
+                clip.style.width = w + 'px';
+                clip.style.height = h + 'px';
+            };
+            that.opacity.onmouseup = function () {
+                that.opacity.onmousemove = null;
+                that.opacity.onmouseup = null;
+                that.temp = that.ctx.getImageData(minx, miny, w, h);
+                that.ctx.clearRect(minx, miny, w, h);
+                that.history.push(that.ctx.getImageData(0, 0, that.cw, that.ch));
+                that.ctx.putImageData(that.temp, minx, miny);
+                that.drag(clip, minx, miny);
+            }
+        }
+    };
+
+    drag(clip, minx, miny) {
+        let that = this;
+        this.opacity.onmousedown = function (e) {
+            let ox = e.offsetX, oy = e.offsetY;
+            that.opacity.onmousemove = function (e) {
+                let mx = e.offsetX, my = e.offsetY;
+                let lefts = minx + mx - ox, tops = miny + my - oy;
+                clip.style.left = lefts + 'px';
+                clip.style.top = tops + 'px';
+                that.ctx.clearRect(0, 0, that.cw, that.ch);
+                if (that.history.length) {
+                    that.ctx.putImageData(that.history[that.history.length - 1], 0, 0);
+                }
+                that.ctx.putImageData(that.temp, lefts, tops);
+            }
+            that.opacity.onmouseup = function () {
+                that.opacity.onmousedown = null;
+                that.opacity.onmousemove = null;
+                that.opacity.onmouseup = null;
+                clip.style.display = 'none';
+                that.history.push(that.ctx.getImageData(0, 0, that.cw, that.ch));
+            }
+        }
     }
 }

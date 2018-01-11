@@ -12,46 +12,42 @@
 <header>
     <ul class="bar1">
         <li id="newc">新建</li>
-        <li id="save">保存</li>
+        <li><a href="" id="save">保存</a></li>
         <li id="revocation">撤销</li>
         <li id="clear">退出</li>
     </ul>
     <ul class="bar2">
-        <li id="line">直线</li>
-        <li id="dotted">虚线</li>
-        <li id="pencil">铅笔</li>
-        <li id="poly">凸多边形</li>
-        <li id="polygon">凹多边形</li>
-        <li id="circle">圆</li>
-        <li id="rect">矩形</li>
-        <li id="eraser">橡皮</li>
+        <li id="line" class="iconfont">&#xe653;</li>
+        <li id="dotted" class="iconfont">&#xe62e;</li>
+        <li id="pencil" class="iconfont">&#xe601;</li>
+        <li id="poly" class="iconfont">&#xe62a;</li>
+        <li id="polygon" class="iconfont">&#xe635;</li>
+        <li id="circle" class="iconfont">&#xe608;</li>
+        <li id="rect" class="iconfont">&#xe605;</li>
+        <li id="eraser" class="iconfont">&#xe602;</li>
     </ul>
     <ul class="bar3">
         <li class="styleBtn" id="fill">填充</li>
         <li class="styleBtn" id="stroke">描边</li>
         <li>线宽</li>
-        <li><input type="color" id="strokeStyle"></li>
+        <li class="fontBtn">文字</li>
         <li><input type="color" id="fillStyle"></li>
+        <li><input type="color" id="strokeStyle"></li>
         <li><input type="number" style="width: 45px"></li>
+        <li class="clipBtn">裁切</li>
     </ul>
 </header>
 <section>
     <canvas width="1000" height="500"></canvas>
     <div class="eraser"></div>
     <div class="mask"></div>
+    <div class="clip"></div>
 </section>
 </body>
 </html>
 <script src="index.js"></script>
 <script>
     window.addEventListener('load', function () {
-        /*let canvas = document.querySelector('canvas');
-        let styleBtn = document.querySelectorAll('.styleBtn');
-        let color = document.querySelectorAll('input[type=color]');
-        let linewidth = document.querySelector('input[type=number]')
-        let shape = document.querySelectorAll('.bar2 li');
-        let palette = new Palette(canvas);*/
-
         let canvas = document.querySelector('canvas');
         let tool = document.querySelectorAll('.bar2 li');
         let style = document.querySelectorAll('.styleBtn');
@@ -60,6 +56,10 @@
         let operate = document.querySelectorAll('.bar1 li');
         let era = document.querySelector('.eraser');
         let opacity = document.querySelector('.mask');
+        let fontBtn = document.querySelector('.fontBtn');
+        let clipBtn = document.querySelector('.clipBtn');
+        let clip = document.querySelector('.clip');
+        let save = document.querySelector('a');
         let palette = new Palette(opacity, canvas);
 
         operate.forEach(e => {
@@ -114,41 +114,18 @@
                 palette.lineWidth = this.value;
             }
         })
-    })
-
-
-    /*shape.forEach(element => {
-        let type = element.id;
-        element.onclick = function () {
-            shape.forEach(obj => {
-                obj.classList.remove('active');
-            })
-            element.classList.add('active');
-            if (type == 'poly' || type == 'polyV') {
-                let num1 = prompt('请输入边数');
-                palette[type](num1);
-            } else {
-                palette[type]();
-            }
+        fontBtn.onclick = function (e) {
+            this.classList.add('active');
+            palette.font();
+        }
+        clipBtn.onclick = function (e) {
+            this.classList.add('active');
+            palette.clip(clip);
+        }
+        save.onclick = function(){
+            let data = canvas.toDataURL('img.png');
+            save.href = data;
+            save.download = 'a.png';
         }
     })
-    shape[0].onclick();
-    styleBtn.forEach(e => {
-        e.onclick = function () {
-            styleBtn.forEach(ele => {
-                ele.classList.remove('active');
-            });
-            e.classList.add('active');
-            palette.style = this.id;
-        }
-    });
-    color.forEach(el => {
-        el.onchange = function(){
-            palette[this.id] = this.value;
-        }
-    });
-    linewidth.oninput = function(){
-        palette.lineWidth = this.value;
-    }
-})*/
 </script>
